@@ -39,13 +39,23 @@
     </div>
 
     <script>
-        // PEGA AQUÍ LA URL DE TU API EN RENDER (sin el /docs al final)
-        const API_URL = "https://tu-proyecto.onrender.com/chat";
-        // PEGA AQUÍ TU API_KEY SECRETA QUE PUSISTE EN RENDER
+        // CONFIGURACIÓN DE TU API
+        const API_URL = "https://iana-api.onrender.com/chat";
         const API_KEY = "tu_clave_secreta_super_segura";
 
         function nuevaConversacion() {
+            window.speechSynthesis.cancel(); // Detener cualquier voz activa
             document.getElementById('chatMessages').innerHTML = '<div class="message iana">¡Conversación nueva iniciada! ¿De qué charlamos?</div>';
+        }
+
+        function hablarTexto(texto) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Cancela la voz anterior si sigue sonando
+                const utterance = new SpeechSynthesisUtterance(texto);
+                utterance.lang = 'es-ES'; // Configuración de idioma en español
+                utterance.rate = 1.0; // Velocidad normal
+                window.speechSynthesis.speak(utterance);
+            }
         }
 
         async function enviarMensaje() {
@@ -80,6 +90,8 @@
 
                 if (response.ok) {
                     chatMessages.innerHTML += `<div class="message iana">${data.response}</div>`;
+                    // Reproducir la respuesta en voz alta automáticamente
+                    hablarTexto(data.response);
                 } else {
                     chatMessages.innerHTML += `<div class="message iana" style="color: #ff6b6b;">Error: ${data.detail || 'No se pudo conectar'}</div>`;
                 }
