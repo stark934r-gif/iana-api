@@ -7,7 +7,7 @@ import os
 
 app = FastAPI(title="Iana Cloud API", version="1.0")
 
-client = genai.Client(api_key="tu_clave_secreta_super_segura")
+client = genai.Client(api_key="GEMINI_API_KEY")
 
 API_KEY = "tu_clave_secreta_super_segura"
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
