@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iana Chat</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { display: flex; height: 100vh; background: #121212; color: #e0e0e0; }
+        .sidebar { width: 260px; background: #1e1e1e; padding: 20px; display: flex; flex-direction: column; border-right: 1px solid #333; }
+        .new-chat-btn { background: #2b2b2b; border: 1px solid #444; color: white; padding: 12px; border-radius: 8px; cursor: pointer; text-align: left; margin-bottom: 20px; font-weight: bold; transition: 0.2s; }
+        .new-chat-btn:hover { background: #383838; }
+        .chat-container { flex: 1; display: flex; flex-direction: column; height: 100vh; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .message { max-width: 70%; padding: 12px 16px; border-radius: 12px; line-height: 1.5; word-wrap: break-word; }
+        .user { background: #2f3640; color: white; align-self: flex-end; }
+        .iana { background: #353b48; color: #f5f6fa; align-self: flex-start; border: 1px solid #485460; }
+        .chat-input-area { padding: 20px; background: #1e1e1e; border-top: 1px solid #333; display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #2b2b2b; color: white; outline: none; }
+        button.send-btn { padding: 0 20px; border-radius: 8px; border: none; background: #00a8ff; color: white; font-weight: bold; cursor: pointer; }
+        button.send-btn:hover { background: #0097e6; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <button class="new-chat-btn" onclick="nuevaConversacion()">+ Nueva conversación</button>
+        <div style="font-size: 14px; color: #888; margin-top: auto;">Iana Cloud v1.0</div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <div class="message iana">¡Hola! Soy Iana. ¿En qué te puedo ayudar hoy?</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="userInput" placeholder="Escribe un mensaje..." onkeypress="handleKeyPress(event)">
+            <button class="send-btn" onclick="enviarMensaje()">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        // PEGA AQUÍ LA URL DE TU API EN RENDER (sin el /docs al final)
+        const API_URL = "https://tu-proyecto.onrender.com/chat";
+        // PEGA AQUÍ TU API_KEY SECRETA QUE PUSISTE EN RENDER
+        const API_KEY = "tu_clave_secreta_super_segura";
+
+        function nuevaConversacion() {
+            document.getElementById('chatMessages').innerHTML = '<div class="message iana">¡Conversación nueva iniciada! ¿De qué charlamos?</div>';
+        }
+
+        async function enviarMensaje() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // Mostrar mensaje del usuario
+            chatMessages.innerHTML += `<div class="message user">${text}</div>`;
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Mostrar estado de carga temporal
+            const loadingId = 'loading-' + Date.now();
+            chatMessages.innerHTML += `<div class="message iana" id="${loadingId}">Iana está escribiendo...</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': API_KEY
+                    },
+                    body: JSON.stringify({ prompt: text, persona: "Iana" })
+                });
+
+                const data = await response.json();
+                document.getElementById(loadingId).remove();
+
+                if (response.ok) {
+                    chatMessages.innerHTML += `<div class="message iana">${data.response}</div>`;
+                } else {
+                    chatMessages.innerHTML += `<div class="message iana" style="color: #ff6b6b;">Error: ${data.detail || 'No se pudo conectar'}</div>`;
+                }
+            } catch (error) {
+                document.getElementById(loadingId).remove();
+                chatMessages.innerHTML += `<div class="message iana" style="color: #ff6b6b;">Error de red al conectar con Render.</div>`;
+            }
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                enviarMensaje();
+            }
+        }
+    </script>
+</body>
+</html>
